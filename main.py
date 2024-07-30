@@ -41,7 +41,7 @@ def send_web_app_button(chat_id):
         "reply_markup": {
             "inline_keyboard": [[{
                 "text": "Open Web App",
-                "web_app": {"url": "https://your-web-app.com"}
+                "web_app": {"url": "https://tg-web-app-rosy.vercel.app"}
             }]]
         }
     }
