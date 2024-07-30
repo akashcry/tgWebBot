@@ -6,12 +6,14 @@ from flask import Flask, jsonify, request
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 TELEGRAM_BOT_TOKEN = '7354061639:AAHhRpJsx-vIMbF79ujg-f73i8o9epK2Ga0'
+
+
 @app.route(f'/{TELEGRAM_BOT_TOKEN}', methods=['POST'])
 def telegram_webhook():
     data = request.json
 
-    if data is None:
-        app.logger.error("Received request with no JSON data.")
+    if not data:
+        app.logger.error("No JSON data received.")
         return jsonify({'error': 'No JSON data received'}), 400
 
     app.logger.debug('Received data: %s', data)
