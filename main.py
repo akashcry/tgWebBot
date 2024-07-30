@@ -18,7 +18,6 @@ def start(update, context):
     update.message.reply_text("Send me some Web App Data!")
 
 def handle_message(update, context):
-    # Assuming `tgWebAppData` comes in message text (for demo purposes)
     tg_web_app_data = update.message.text
     update.message.reply_text(f"Received Web App Data: {tg_web_app_data}")
 
