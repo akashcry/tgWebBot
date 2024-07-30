@@ -1,29 +1,51 @@
-from flask import Flask, request
-import os
-from telegram import Bot, Update
-from telegram.ext import Dispatcher, CommandHandler, MessageHandler, Filters
+from flask import Flask, request, jsonify
+import requests
 
 app = Flask(__name__)
 
-TOKEN = os.getenv('TELEGRAM_TOKEN')
-bot = Bot(token=TOKEN)
+TELEGRAM_BOT_TOKEN = '7354061639:AAHhRpJsx-vIMbF79ujg-f73i8o9epK2Ga0'
 
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    update = Update.de_json(request.get_json(), bot)
-    dp.process_update(update)
-    return "ok", 200
+@app.route(f'/{TELEGRAM_BOT_TOKEN}', methods=['POST'])
+def telegram_webhook():
+    data = request.json
 
-def start(update, context):
-    update.message.reply_text("Send me some Web App Data!")
+    if not data:
+        return jsonify({'error': 'No JSON data received'}), 400
 
-def handle_message(update, context):
-    tg_web_app_data = update.message.text
-    update.message.reply_text(f"Received Web App Data: {tg_web_app_data}")
+    if "message" in data:
+        message = data["message"]
+        chat_id = message["chat"]["id"]
+        message_text = message.get("text", "")
 
-dp = Dispatcher(bot, None, use_context=True)
-dp.add_handler(CommandHandler("start", start))
-dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
+        if message_text == "/start":
+            send_message(chat_id, "Welcome to the bot! Click the button below to open the web app.")
+            send_web_app_button(chat_id)
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    if "web_app_data" in data:
+        chat_id = data["message"]["chat"]["id"]
+        tg_web_app_data = data["message"]["web_app_data"]["data"]
+        send_message(chat_id, f"tgWebAppData: {tg_web_app_data}")
+
+    return '', 200
+
+def send_message(chat_id, text):
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {"chat_id": chat_id, "text": text}
+    requests.post(url, json=payload)
+
+def send_web_app_button(chat_id):
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": "Open Web App",
+        "reply_markup": {
+            "inline_keyboard": [[{
+                "text": "Open Web App",
+                "web_app": {"url": "https://your-web-app.com"}
+            }]]
+        }
+    }
+    requests.post(url, json=payload)
+
+if __name__ == "__main__":
+    app.run(debug=True)
