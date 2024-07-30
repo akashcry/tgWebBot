@@ -16,18 +16,29 @@ def telegram_webhook():
 
     app.logger.debug('Received data: %s', data)
 
-    if "message" in data:
-        message = data.get('message', {})
-        chat_id = message.get("chat", {}).get("id")
-        message_text = message.get("text", "")
+    message = data.get("message")
+    if not message:
+        app.logger.error("No message found in the request data.")
+        return jsonify({'error': 'No message found'}), 400
 
-        app.logger.debug('Chat ID: %s, Message Text: %s', chat_id, message_text)
+    chat = message.get("chat")
+    if not chat:
+        app.logger.error("No chat information found in the message.")
+        return jsonify({'error': 'No chat information found'}), 400
 
-        if message_text == "/start":
-            web_app_data = message.get('web_app_data', {})
-            tg_web_app_data = web_app_data.get('data', 'No tg-web-app-data found')
-            app.logger.debug('tgWebAppData: %s', tg_web_app_data)
-            send_message(chat_id, f"tgWebAppData: {tg_web_app_data}")
+    chat_id = chat.get("id")
+    if not chat_id:
+        app.logger.error("No chat ID found in the chat information.")
+        return jsonify({'error': 'No chat ID found'}), 400
+
+    message_text = message.get("text", "")
+    app.logger.debug('Chat ID: %s, Message Text: %s', chat_id, message_text)
+
+    if message_text == "/start":
+        web_app_data = message.get("web_app_data", {})
+        tg_web_app_data = web_app_data.get("data", "No tg-web-app-data found")
+        app.logger.debug('tgWebAppData: %s', tg_web_app_data)
+        send_message(chat_id, f"tgWebAppData: {tg_web_app_data}")
     
     return '', 200
 
